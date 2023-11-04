@@ -118,15 +118,7 @@ const findNearest = (color, exists) => {
 //
 // COMPONENTS
 
-const dialogComponent = (color) => {
-    const { exists, data } = store.state;
-    const className = `dialog`;
-    const div = createElement('div', className);
-
-    const isExist = isExistColor(color, exists);
-    const nearest = findNearest(color, getFreeColors(data, exists));
-
-    createStyle(`.${className} {
+createStyle(`.dialog {
                 background-color: #ccc;
                 position:absolute;
                 top: 0;
@@ -134,6 +126,14 @@ const dialogComponent = (color) => {
                 padding: 20px;
                 display: none;
             }`);
+
+const dialogComponent = (color) => {
+    const { exists, data } = store.state;
+    const className = `dialog`;
+    const div = createElement('div', className);
+
+    const isExist = isExistColor(color, exists);
+    const nearest = findNearest(color, getFreeColors(data, exists));
 
     div.innerHTML = `
                 <div>
@@ -150,6 +150,16 @@ const dialogComponent = (color) => {
     return div;
 }
 
+const hashColor = {}
+const setColorToHash = (className, color1, color2, color3, color4) => {
+    const colorKey = `${color1}, ${color2}, ${color3}, ${color4}`
+
+    if(hashColor?.[colorKey]) {
+        hashColor[colorKey] += `, .${className}`
+    } else {
+        hashColor[colorKey] = className
+    }
+}
 const cellComponent = (i, j) => {
     const { width, height, data } = store.state;
 
@@ -159,11 +169,7 @@ const cellComponent = (i, j) => {
     const color = getAvgColor(i, j, wOneCol, hOneCol, data, width)
     const className = `block_${i}_${j}`;
 
-    createStyle(`.${className} {
-                background-color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]});
-                width: 5px;
-                height: 5px;
-            }`);
+    setColorToHash(className, color[0], color[1], color[2], color[3])
 
     const div = createElement('div', className);
     const dialog = dialogComponent(color);
@@ -179,16 +185,17 @@ const cellComponent = (i, j) => {
     return div;
 };
 
+createStyle(`.carcass {
+                width: fit-content;
+                display: grid;
+                grid-template-columns: repeat(${WIDTH_COLUMNS}, 1fr);
+            }`);
+
 const carcassComponent = () => {
     const className = "carcass";
     const carcass = createElement('div', className);
     const fragment = document.createDocumentFragment()
 
-    createStyle(`.${className} {
-                width: fit-content;
-                display: grid;
-                grid-template-columns: repeat(${WIDTH_COLUMNS}, 1fr);
-            }`);
 
     for (let i = 0; i < HEIGHT_COLUMNS; i++) {
         for (let j = 0; j < WIDTH_COLUMNS; j++) {
@@ -196,6 +203,14 @@ const carcassComponent = () => {
             fragment.appendChild(div);
         }
     }
+
+    Object.entries(hashColor).forEach(([color, className]) => {
+        createStyle(`.${className} {
+                background-color: rgba(${color});
+                width: 5px;
+                height: 5px;
+            }`)
+    })
 
     carcass.appendChild(fragment)
 
