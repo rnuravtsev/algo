@@ -68,8 +68,8 @@ const getAvgColor = (start, finish, width, height, data, globalWidth) => {
     let alphaTotal = 0;
     let yOffset = globalWidth * start * height
     let xOffset = finish * width
-    for (let y = start * height; y < start * height + height; y++) {
-        for (let x = finish * width; x < finish * width + width; x++) {
+    for (let y = 0; y < height; y++) {
+        for (let x = width; x < width + width; x++) {
             const pos = 4 * (y + yOffset) + (x + xOffset) * 4;
 
             const alpha = data[pos + 3];
@@ -182,6 +182,7 @@ const cellComponent = (i, j) => {
 const carcassComponent = () => {
     const className = "carcass";
     const carcass = createElement('div', className);
+    const fragment = document.createDocumentFragment()
 
     createStyle(`.${className} {
                 width: fit-content;
@@ -192,9 +193,12 @@ const carcassComponent = () => {
     for (let i = 0; i < HEIGHT_COLUMNS; i++) {
         for (let j = 0; j < WIDTH_COLUMNS; j++) {
             const div = cellComponent(i, j);
-            carcass.appendChild(div);
+            fragment.appendChild(div);
         }
     }
+
+    carcass.appendChild(fragment)
+
     return carcass;
 }
 
