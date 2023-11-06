@@ -5,6 +5,7 @@
 
 type RC = {
     type: string;
+    width: string
 }
 
 const withProp = (Component: RC) => {
@@ -12,7 +13,8 @@ const withProp = (Component: RC) => {
 }
 
 const A: RC = {
-    type: 'div'
+    type: 'div',
+    width: '300px'
 }
 
 const compose = (...hocs: ((Component: RC) => RC)[]) => {
