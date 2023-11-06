@@ -17,7 +17,7 @@
     // CONSTANTS
     const WIDTH_COLUMNS = 100;
     const HEIGHT_COLUMNS = 140;
-    const NUMBER_OF_NEAREST = 3;
+    const NUMBER_OF_NEAREST = 2;
     const EXISTS = [
         [79, 110, 76, 255],
         [92, 110, 80, 255],
@@ -108,7 +108,12 @@
     }
 
     const isExistColor = (color, exists) => {
-        return exists.some(item => item.every((el, idx) => el === color[idx]));
+        for (const item of exists) {
+            if (item.toString() === color.toString()) {
+                return true;
+            }
+        }
+        return false;
     };
 
     const getFreeColors = (data, exists) => {
@@ -134,22 +139,13 @@
     //
     // COMPONENTS
 
-    createStyle(`.dialog {
-                background-color: #ccc;
-                position:absolute;
-                top: 0;
-                right: 0;
-                padding: 20px;
-                display: none;
-            }`);
-
     const dialogComponent = (color) => {
-        const { exists, data } = store.state;
+        const { exists } = store.state;
         const className = `dialog`;
         const div = createElement('div', className);
 
         const isExist = isExistColor(color, exists);
-        const nearest = findNearest(color, getFreeColors(data, exists));
+        const nearest = findNearest(color, exists);
 
         div.innerHTML = `
                 <div>
@@ -201,20 +197,6 @@
         return div;
     };
 
-    createStyle(`.carcass {
-                width: fit-content;
-                display: grid;
-                grid-template-columns: repeat(${WIDTH_COLUMNS}, 1fr);
-            }`);
-
-    Object.entries(hashColor).forEach(([color, className]) => {
-        createStyle(`.${className} {
-                background-color: rgba(${color});
-                width: 5px;
-                height: 5px;
-            }`)
-    })
-
     const carcassComponent = () => {
         const className = "carcass";
         const carcass = createElement('div', className);
@@ -228,10 +210,36 @@
             }
         }
 
+        const styles = [];
+        Object.entries(hashColor).forEach(([color, className]) => {
+            styles.push(`.${className} {
+                background-color: rgba(${color});
+                width: 5px;
+                height: 5px;
+            }`);
+        });
+
+        createStyle(styles.join('\n'));
+
         carcass.appendChild(fragment)
 
         return carcass;
     }
+
+    createStyle(`.dialog {
+                background-color: #ccc;
+                position:absolute;
+                top: 0;
+                right: 0;
+                padding: 20px;
+                display: none;
+            }`);
+
+    createStyle(`.carcass {
+                width: fit-content;
+                display: grid;
+                grid-template-columns: repeat(${WIDTH_COLUMNS}, 1fr);
+            }`);
 
     const main = (data) => {
         const { width, height } = data;
