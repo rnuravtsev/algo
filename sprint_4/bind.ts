@@ -23,4 +23,11 @@ Function.prototype.bind = function(ctx: unknown, ...args: any[]) {
     }
 }
 
-export default Function.prototype.bind
+
+Function.prototype.myBind = function (ctx: any, args: any) {
+    const fn = this
+
+    return (...rest: any[]) => {
+        fn.apply(ctx, args.concat(rest))
+    }
+}
