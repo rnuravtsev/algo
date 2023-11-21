@@ -1,58 +1,96 @@
-// 1. Вариант (в лоб)
-class TimeLimitedCache<T extends Record<string | number, unknown>, K extends keyof T> {
-    data = {} as T
-    timers = {} as Record<K, ReturnType<typeof setTimeout>>
+// class TimeLimitedCache<T extends Record<string | number, unknown>, K extends keyof T> {
+//     data = {} as T
+//     timers = {} as Record<K, ReturnType<typeof setTimeout>>
+//
+//     private _updateCache(key: K, value: T[K], duration: number) {
+//         this.data[key] = value
+//
+//         this.timers[key] = setTimeout(() => {
+//             delete this.timers[key]
+//             delete this.data[key]
+//         }, duration)
+//     }
+//
+//     set(key: K, value: T[K], duration: number) {
+//         if (this.data[key]) {
+//             const prevTimer = this.timers[key]
+//             if (prevTimer) {
+//                 clearTimeout(prevTimer)
+//             }
+//
+//             this._updateCache(key, value, duration)
+//
+//             return true
+//         }
+//
+//         this._updateCache(key, value, duration)
+//
+//         return false
+//     }
+//
+//     get(key: K) {
+//         return this.data[key] ? this.data[key] : -1
+//     }
+//
+//     count() {
+//         return Object.keys(this.data).length
+//     }
+// }
 
-    private _updateCache(key: K, value: T[K], duration: number) {
-        this.data[key] = value
+// const cache = new TimeLimitedCache();
 
-        this.timers[key] = setTimeout(() => {
-            delete this.timers[key]
-            delete this.data[key]
-        }, duration)
-    }
+// setTimeout(() => console.log(cache.set(1, 500, 450)),   0);   // false
+// setTimeout(() => console.log(cache.get(1)),           100);   // 500
+// setTimeout(() => console.log(cache.set(2, 600, 350)), 200);   // false
+// setTimeout(() => console.log(cache.get(2)),           300);   // 600
+// setTimeout(() => console.log(cache.count()),          400);   // 2
+// setTimeout(() => console.log(cache.set(2, 800, 250)), 500);   // true
+// setTimeout(() => console.log(cache.count()),          600);   // 1
 
-    set(key: K, value: T[K], duration: number) {
-        if (this.data[key]) {
-            const prevTimer = this.timers[key]
-            if (prevTimer) {
-                clearTimeout(prevTimer)
-            }
-
-            this._updateCache(key, value, duration)
-
-            return true
+const generateKey = (...args: unknown[]): string => {
+    return args.map(arg => {
+        if (Array.isArray(arg)) {
+            return generateKey(...arg)
         }
 
-        this._updateCache(key, value, duration)
+        return `${typeof(arg)}<${String(arg)}>`
+    }).join(', ')
+}
 
-        return false
-    }
+// 2. Вариант от ЯП
+const memoizeAsyncYP = (fn: (...args: unknown[]) => unknown, timeout: number) => {
+    const cache: Record<string, { value: unknown, expire: number }> = {}
 
-    get(key: K) {
-        return this.data[key] ? this.data[key] : -1
-    }
+    return (...args: unknown[]) => {
+        const key = generateKey(args)
+        const result = cache[key]
 
-    count() {
-        return Object.keys(this.data).length
+        if (typeof result === 'undefined' || Date.now() > result.expire) {
+            return Promise.resolve(fn(...args)).then(value => {
+                cache[key] = { value, expire: Date.now() + timeout }
+
+                return value
+            })
+        }
+
+        return Promise.resolve(cache[key])
     }
 }
 
-const cache = new TimeLimitedCache();
+const mockedGetData1 = (value: unknown) => new Promise((resolve) => setTimeout(() => resolve(value), 1500))
 
-setTimeout(() => console.log(cache.set(1, 500, 450)),   0);   // false
-setTimeout(() => console.log(cache.get(1)),           100);   // 500
-setTimeout(() => console.log(cache.set(2, 600, 350)), 200);   // false
-setTimeout(() => console.log(cache.get(2)),           300);   // 600
-setTimeout(() => console.log(cache.count()),          400);   // 2
-setTimeout(() => console.log(cache.set(2, 800, 250)), 500);   // true
-setTimeout(() => console.log(cache.count()),          600);   // 1
+const cache = memoizeAsyncYP(() => mockedGetData1(77), 2000)
 
-// setTimeout(() => console.log(cache.set(1, 42, 50)), 0); // false
-// setTimeout(() => console.log(cache.set(1, 50, 100)), 40); // true
-// setTimeout(() => console.log(cache.get(1)), 50); // 50
-// setTimeout(() => console.log(cache.get(1)), 120); // 50
-// setTimeout(() => console.log(cache.get(1)), 200); // -1
-// setTimeout(() => console.log(cache.count()), 250); // 0
-
-// 2. Вариант с Proxy
+cache()
+    .then(console.log) // получаем долго
+    .then(() => {
+        setTimeout(() => cache().then(console.log), 12000)
+    })
+    .then(() => cache(mockedGetData1(42), 3000))
+    .then(result => console.log('2', result)) // получаем быстро, из кеша
+    .then(() => cache())
+    .then(result => console.log('3', result)) // получаем быстро, из кеша
+    .then(() => {
+        // получаем долго, считается заново
+        setTimeout(() => cache().then(console.log), 5000);
+    });

@@ -4,9 +4,9 @@ const fooAsync = () => {
         console.log('123')
     }
     setTimeout(() => {
-        // aAsync = true
+        aAsync = true
         fooAsync()
-    }, 10000)
+    }, 5000)
 
     setTimeout(() => {
         aAsync = false
