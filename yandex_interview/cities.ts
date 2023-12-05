@@ -1,4 +1,4 @@
-import { swap } from "../algo/bubbleSort";
+import { swap } from "../algo/sprint2/bubbleSort";
 
 type Route = {
     from: string,
