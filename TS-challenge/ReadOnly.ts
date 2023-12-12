@@ -8,9 +8,8 @@ const todo: MyReadonly<Todo> = {
     description: "foobar"
 }
 
-
-type MyReadonly<Object> = {
-    readonly [Key in keyof Object]: Object[Key]
+type MyReadonly<Entity> = {
+    readonly [Key in keyof Entity]: Entity[Key]
 }
 
 todo.title = "Hello" // Error: cannot reassign a readonly property
