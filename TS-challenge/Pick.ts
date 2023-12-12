@@ -11,6 +11,6 @@ const todo: TodoPreview = {
     completed: false,
 }
 
-type MyPick<Entity, Key extends keyof Entity> = {
-    [P in Key]: Entity[Key]
+export type MyPick<Entity, Key extends keyof Entity> = {
+    [P in Key]: Entity[P]
 }

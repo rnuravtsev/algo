@@ -24,7 +24,7 @@ const isObject = (checkValue: unknown) => {
 };
 
 /**
- * Авторское решени
+ * Авторское решение
  * const zip = (...args) => {
  *     return args.reduce((accumulator, object) => {
  *         if (isObject(object)) {
